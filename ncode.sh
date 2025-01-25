@@ -18,7 +18,7 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
 ## VARIABLE INITIALIZATION
     local abs_path
     local append=false
-    local clear_log
+    local clear_log=false
     local empty=false
     local file=""
     local help=false
@@ -28,6 +28,12 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
     log_action() { # Logging function
         echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$log_file"
         }
+    verbose_check() { # Verbose check function
+        local string="$1" # Capture the input string as a parameter
+        if [ "$verbose" = true ]; then
+            echo "$string"
+        fi
+    }
 
 ## ARGUMENT PARSING
     for arg in "$@"; do
@@ -51,6 +57,7 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
                 empty=true
                 ;;
             -l|--log) # Cats log
+                echo "cat $log_file"
                 cat $log_file
                 return 1
                 ;;
@@ -81,6 +88,7 @@ Options:
   -c,  --clear-log      Clears log file at $HOME/ncode.log
   -h,  --help           Show this help message
   -v,  --verbose        Enable verbose mode for detailed output
+  -l,  --log            Cats the log file to stdout
 
 EOF
     return 0
@@ -120,20 +128,17 @@ EOF
     abs_path=$(realpath "$file")
 
 ## CLIPBOARD FETCHING
-    if [ "$verbose" = true ]; then # Verbose output
-        echo "Fetching content from clipboard..."
-    fi
-
     # Fetch clipboard content using xclip
     local content
     content=$(xclip -selection clipboard -o)
+    verbose_check "Fetched content from clipboard..."
 
 ## SET CONTENTS TO EMPTY ON FLAG
     # Writes 
-    if [ "$verbose" = true ]; then # Verbose output
-        echo "Setting content to empty string: [-e]"
+    if [ "$empty" = true ]; then
+        verbose_check "Setting content to empty string: [-e]"
         if [ "$append" = true ]; then
-            echo "Setting append to false. [-a] doesn't work with [-e]"
+            verbose_check "Setting append to false. [-a] doesn't work with [-e]"
             append=false
         fi
     fi
@@ -144,11 +149,11 @@ EOF
 ## WRITE / APPEND TO FILE
     # Append
     if [ "$append" = true ]; then
-        if [ "$verbose" = true ]; then
-            echo "Appending content to $file"
-        fi
+        verbose_check "Appending content to $file"
+
         echo "$content" >> "$file"
         log_action "Appended content to $abs_path"
+        verbose_check "Logged action in $log_file"
     else
     # Write
         if [ -e "$file" ]; then
@@ -159,24 +164,22 @@ EOF
                 return 1
             fi
         fi
-        if [ "$verbose" = true ]; then
-            echo "Writing content to $file"
-            log_action "Wrote clipboard content to $abs_path"
-        fi
+        verbose_check "Writing content to $file"
+        log_action "Wrote clipboard content to $abs_path"
+        verbose_check "Logged action in $log_file"
         echo "$content" > "$file"
     fi
 
 ## OPEN FILE
     # Open the file in VSCode unless --no-open is specified
     if [ "$no_open" = false ]; then
-        if [ "$verbose" = true ]; then # Verbose output
-                echo "Opening $file in VSCode"
-        fi
+        verbose_check "Opening $file in VSCode"
+        
         code "$file"
+    else
+        verbose_check "--no-open used. Not opening file"
     fi
-    if [ "$verbose" = true ] && [ "$no_open" = true ]; then # Verbose output
-            echo "--no-open used. Not opening file"
-    fi
+    
 
 ## NOTIFY EMPTY
     # Notify user on empty clipboard
