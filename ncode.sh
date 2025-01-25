@@ -2,6 +2,87 @@
 
 # This goes in .bashrc or a similarly sourced file
 
+function cl() {
+    DIR="$*";
+	# if no DIR given, go home
+	if [ $# -lt 1 ]; then 
+		DIR=".";
+    fi;
+    builtin cd "${DIR}" && \
+    # use your preferred ls command
+    c
+	lsd --oneline
+}
+
+# Shows the weather
+wttr()
+{   
+    # change Berlin to your default location
+    local request="wttr.in/${1-REDACTED}"
+    [ "$(tput cols)" -lt 125 ] && request+='?n'
+    curl -H "Accept-Language: ${LANG%_*}" --compressed "$request"
+}
+
+# git --no-pager log --oneline --graph --decorate --all [-n]
+gitlog() {
+    if [ $# -eq 1 ]; then
+        NUM="$1"
+        git --no-pager log --oneline --graph --decorate --all -n $NUM
+    else
+        git --no-pager log --oneline --graph --decorate --all
+    fi
+}
+
+# Copies python __init__ variables to clipboard "pyinit 'a, b, c' [2] [-p]"
+pyinit() {
+    INT="\033[0;35mint\033[0m"
+    TWO="\033[0;35m2\033[0m"
+    BLU="\033[0;34m"
+    CY="\033[0;36m"
+    RE="\033[0m"
+    GRN="\033[0;32m"
+    YE="\033[0;33m"
+    if [ $# -eq 0 ]; then
+        echo "No arguments provided. pyinit -h for help"
+        return 1
+    elif [ $# -gt 3 ]; then
+        echo "Too many arguments. pyinit -h for help"
+        return 1
+    elif [[ " ${1} " =~ " -h " ]] || [[ " ${1} " =~ " --help " ]]; then
+        echo -e "$RE"
+        echo -e "Format: pyinit$CY 'a, b, c'$RE [$TWO] [$BLU-p$RE]"
+        echo ""
+        echo -e "  $INT = tab depth (default = $TWO, optional, starts at line 2)"
+        echo -e "  $BLU-p$RE =$BLU private$RE (must be last)"
+        echo ""
+        echo "Examples:"
+        echo -e "  pyinit$CY 'a, b, c'$RE $TWO $BLU-p$RE   # With tab depth set to $TWO and$BLU private$RE variables"
+        echo -e "  pyinit$CY 'a, b, c'$RE   $BLU-p$RE   # With default tab depth and$BLU private$RE variables"
+        echo -e "  pyinit$CY 'a, b, c'$RE        # With default tab depth and no private variables"
+        echo ""
+        echo -e $GRN"user: $ $RE pyinit$CY 'a, b, c'$RE $TWO $BLU-p$RE "
+        echo -e "(Copies the following to clipboard:)$YE"
+        echo "self.__a = a"
+        echo "        self.__b = b"
+        echo "        self.__c = c"
+        echo -e "$RE"
+        return 0
+    elif [[ " ${2} " =~ " -p " ]]; then
+        python3 /home/vexy/generate_init.py "$1" "-p" | xclip -selection clipboard
+        echo "Copied to clipboard: $1 with default (2) tabs (private)"
+    elif [ -n "$2" ] && [ ! -n "$3" ]; then
+        python3 /home/vexy/generate_init.py "$1" "$2" | xclip -selection clipboard
+        echo "Copied to clipboard: $1 with $2 tabs"
+    # Check if "-p" is in the arguments
+    elif [[ " ${3} " =~ " -p " ]]; then
+        python3 /home/vexy/generate_init.py "$1" "$2" "-p" | xclip -selection clipboard
+        echo "Copied to clipboard: $1 with $2 tabs (private)"
+    else
+        python3 /home/vexy/generate_init.py "$1" | xclip -selection clipboard
+        echo "Copied to clipboard: $1"
+    fi
+}
+
 ncode() { # Fetches clipboard content and writes it to specified filename, then opens it in VSCode
 
 ### START OF INIT
@@ -103,12 +184,9 @@ EOF
 ## FILENAME VALIDATION
     # Check if a filename is provided
     if [ -z "$file" ]; then
-        echo ""
-        echo "Error: No filename provided."
+        echo -e "\nError: No filename provided."
         echo "Usage: ncode [options] <filename>"
-        echo ""
-        echo "Use ncode -h or ncode --help for instructions"
-        echo ""
+        echo -e "\nUse ncode -h or ncode --help for instructions"
         return 1
     fi
 
@@ -148,15 +226,14 @@ EOF
     # Append
     if [ "$append" = true ]; then
         if [ "$verbose" = true ]; then
-            echo "Appending clipboard content to $file"
+            echo "Appending content to $file"
         fi
         echo "$content" >> "$file"
-        log_action "Appended clipboard content to $abs_path"
+        log_action "Appended content to $abs_path"
     else
     # Write
         if [ -e "$file" ]; then
-            echo ""
-            echo "Warning: File '$file' already exists. Overwrite? (y/n)"
+            echo -e "\nWarning: File '$file' already exists. Overwrite? (y/n)"
             read -r response
             if [[ ! "$response" =~ ^[Yy]$ ]]; then
                 echo "Aborted."
@@ -164,7 +241,7 @@ EOF
             fi
         fi
         if [ "$verbose" = true ]; then
-            echo "Writing clipboard content to $file"
+            echo "Writing content to $file"
             log_action "Wrote clipboard content to $abs_path"
         fi
         echo "$content" > "$file"
@@ -172,11 +249,14 @@ EOF
 
 ## OPEN FILE
     # Open the file in VSCode unless --no-open is specified
-    if [ "$verbose" = true ]; then # Verbose output
-            echo "Opening $file in VSCode"
-    fi
     if [ "$no_open" = false ]; then
+        if [ "$verbose" = true ]; then # Verbose output
+                echo "Opening $file in VSCode"
+        fi
         code "$file"
+    fi
+    if [ "$verbose" = true ] && [ "$no_open" = true ]; then # Verbose output
+            echo "--no-open used. Not opening file"
     fi
 
 ## NOTIFY EMPTY
