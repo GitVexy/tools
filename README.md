@@ -16,3 +16,10 @@
     -c, --clear-log Clears log file at /home/vexy/ncode.log  
     -h, --help Show this help message  
     -v, --verbose Enable verbose mode for detailed output  
+
+- **gitPush**:
+
+    Usage: gitPush "commit message" (quotes required)  
+    
+    Takes a variable string and adds working directory to staged commits,  
+    commits them with message, then pushes to origin.
