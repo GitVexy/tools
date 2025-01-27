@@ -27,5 +27,5 @@
 
     Combines all files in current directory of specified filetype into a single document  
 
-    Usage: vcombine <.ext>
+    Usage: vcombine .ext
   
