@@ -1,20 +1,21 @@
 # Goes in .bashrc or similarly sourced file
 
-: 'vcombine usage in bash:
-    
-    Find all generated master files in current directory and sub-directories:
-        find ./ -type f -name "*master*"
-    
-    Delete all generated master files in current directory and sub-directories:
-        find ./ -type f -name "*master*" -exec rm -f {} +
-    
-    Generate master files for each sub-directory, and one master_master that combines them all in the current dir:
-        find ./ -type d | while read -r folder; do (cd "$folder" && vcombine .py)
-    
-    Generate master file for every .py file in current directory, including sub-directories:
-        vcombine .py'
-
 vcombine() { # Combines all files in current directory of specified filetype into a single document
+
+    : ' Extended vcombine usage in bash:
+        
+        Generate master file for every .py file in current directory, including sub-directories:
+            vcombine .py
+        
+        Generate master files for each sub-directory, and one master_master that combines them all in the current dir:
+            find ./ -type d | while read -r folder; do (cd "$folder" && vcombine .py)
+    
+        Find all generated master files in current directory and sub-directories:
+            find ./ -type f -name "*master*"
+        
+        Delete all generated master files in current directory and sub-directories: !!Dangerous!! Run previous command first!
+            find ./ -type f -name "*master*" -exec rm -f {} +'
+
   extension="$1"                                                # The file extension to search for (e.g., ".py")
   dir_name=$(basename "$PWD")                                   # Get the name of the current directory
   master_file="${dir_name}_master$extension"                    # Create the master file name (e.g., folder_master.py)
