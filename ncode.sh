@@ -2,20 +2,38 @@
 
 # This goes in .bashrc or a similarly sourced file
 
+ncode_display_help() { # nCode function to display the help message
+    cat <<EOF
+ *~ nCode ~*
+ 
+ Usage: ncode [options] <filename>
+ 
+ Writes clipboard content to specified file, and opens it in VSCode.
+ 
+ Options:
+   -a,  --append         Append clipboard content rather than overwriting
+   -e,  --empty          Create file with no copied contents
+   -n,  --no-open        Do not open the file after creation
+ 
+   -c,  --clear-log      Clears log file at $HOME/ncode.log
+   -h,  --help           Show this help message
+   -v,  --verbose        Enable verbose mode for detailed output
+   -l,  --log            Cats the log file to stdout
+
+EOF
+}
+
 ncode() { # Fetches clipboard content and writes it to specified filename, then opens it in VSCode
 
-### START OF INIT
+ ### START OF INIT
 
-## DEPENDENCY VALIDATION
+ ## DEPENDENCY VALIDATION
     if ! command -v xclip &> /dev/null; then
-        echo ""
-        echo "Error: xclip is not installed, or is missing from PATH." 
-        echo "Please install it and try again."
-        echo ""
+        echo -e "\nError: xclip is not installed, or is missing from PATH.\nPlease install it and try again.\n"
         return 1
     fi
 
-## VARIABLE INITIALIZATION
+ ## VARIABLE INITIALIZATION
     local abs_path
     local append=false
     local clear_log=false
@@ -29,13 +47,12 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
         echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$log_file"
         }
     verbose_check() { # Verbose check function
-        local string="$1" # Capture the input string as a parameter
+        local string="$1"
         if [ "$verbose" = true ]; then
             echo "$string"
         fi
     }
-
-## ARGUMENT PARSING
+ ## ARGUMENT PARSING
     for arg in "$@"; do
         case "$arg" in
             -a|--append) # Append clipboard contents to end of existing document
@@ -67,34 +84,17 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
         esac
     done
 
-### END OF INIT
+ ### END OF INIT
 
-### START OF RUN
+ ### START OF RUN
 
-## HELP MESSAGE
+ ## HELP MESSAGE
     if [ "$help" = true ]; then
-        cat << EOF
-*~ nCode ~*
-
-Usage: ncode [options] <filename>
-
-Writes clipboard content to specified file, and opens it in VSCode.
-
-Options:
-  -a,  --append         Append clipboard content rather than overwriting
-  -e,  --empty          Create file with no copied contents
-  -n,  --no-open        Do not open the file after creation
-
-  -c,  --clear-log      Clears log file at $HOME/ncode.log
-  -h,  --help           Show this help message
-  -v,  --verbose        Enable verbose mode for detailed output
-  -l,  --log            Cats the log file to stdout
-
-EOF
+        ncode_display_help
     return 0
     fi
 
-## CLEAR LOG
+ ## CLEAR LOG
     if [ "$clear_log" = true ]; then
         echo "Are you sure you want to clear the log? (y/n)"
         read -r response
@@ -108,7 +108,7 @@ EOF
         fi
     fi
 
-## FILENAME VALIDATION
+ ## FILENAME VALIDATION
     # Check if a filename is provided
     if [ -z "$file" ]; then
         echo -e "\nError: No filename provided."
@@ -117,23 +117,23 @@ EOF
         return 1
     fi
 
-## DIRECTORY VALIDATION
+ ## DIRECTORY VALIDATION
     # Ensure the directory exists
     if ! mkdir -p "$(dirname "$file")"; then
-       echo "Error: Failed to create directory $(dirname "$file")."
-       return 1
+        echo "Error: Failed to create directory $(dirname "$file")."
+        return 1
     fi
 
     # Set absolute path for logging purposes
     abs_path=$(realpath "$file")
 
-## CLIPBOARD FETCHING
+ ## CLIPBOARD FETCHING
     # Fetch clipboard content using xclip
     local content
     content=$(xclip -selection clipboard -o)
     verbose_check "Fetched content from clipboard..."
 
-## SET CONTENTS TO EMPTY ON FLAG
+ ## SET CONTENTS TO EMPTY ON FLAG
     # Writes 
     if [ "$empty" = true ]; then
         verbose_check "Setting content to empty string: [-e]"
@@ -146,7 +146,7 @@ EOF
         content=""
     fi
 
-## WRITE / APPEND TO FILE
+ ## WRITE / APPEND TO FILE
     # Append
     if [ "$append" = true ]; then
         verbose_check "Appending content to $file"
@@ -170,7 +170,7 @@ EOF
         echo "$content" > "$file"
     fi
 
-## OPEN FILE
+ ## OPEN FILE
     # Open the file in VSCode unless --no-open is specified
     if [ "$no_open" = false ]; then
         verbose_check "Opening $file in VSCode"
@@ -181,7 +181,7 @@ EOF
     fi
     
 
-## NOTIFY EMPTY
+ ## NOTIFY EMPTY
     # Notify user on empty clipboard
     if [ -z "$content" ] && [ ! "$empty" ]; then # Empty clipboard message
         echo "Error: Clipboard was empty. File may not contain expected content."
