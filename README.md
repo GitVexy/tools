@@ -1,12 +1,11 @@
-# Tools
+# Tools  
 
-### This is a selection of tools I’ve made on my path of becoming a developer
+### This is a selection of tools I’ve made on my path of becoming a developer  
 
-- **nCode**:
-    
-    Usage: ncode [options] <filename>
-    
-    Writes clipboard content to specified file, and opens it in VSCode.
+- **nCode**:  
+    Writes clipboard content to specified file, and opens it in VSCode.  
+
+    Usage: ncode [options] <filename>  
     
     Options:  
     -a,  --append         Append clipboard content rather than overwriting  
@@ -17,9 +16,16 @@
     -h, --help Show this help message  
     -v, --verbose Enable verbose mode for detailed output  
 
-- **gitPush**:
-
-    Usage: gitPush "commit message" (quotes required)  
+- **gitPush**:  
     
     Takes a variable string and adds working directory to staged commits,  
-    commits them with message, then pushes to origin.
+    commits them with message, then pushes to origin.  
+
+    Usage: gitpush "commit message" (quotes required)  
+
+- **vCombine**:
+
+    Combines all files in current directory of specified filetype into a single document  
+
+    Usage: vcombine <.ext>
+  
