@@ -2,10 +2,10 @@
 
 ### This is a selection of tools I’ve made on my path of becoming a developer  
 
-- **nCode**:  
-    Writes clipboard content to specified file, and opens it in VSCode.  
+- **nClip**:  
+    Writes clipboard content to specified file, and opens it in NeoVim.  
 
-    Usage: ncode [options] <filename>  
+    Usage: nclip [options] <filename>  
     
     Options:  
     -a,  --append         Append clipboard content rather than overwriting  
