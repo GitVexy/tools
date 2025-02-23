@@ -2,20 +2,20 @@
 
 # This goes in .bashrc or a similarly sourced file
 
-ncode_display_help() { # nCode function to display the help message
+nclip_display_help() { # nclip function to display the help message
     cat <<EOF
- *~ nCode ~*
+ *~ nclip ~*
  
- Usage: ncode [options] <filename>
+ Usage: nclip [options] <filename>
  
- Writes clipboard content to specified file, and opens it in VSCode.
+ Writes clipboard content to specified file, and opens it in NeoVim.
  
  Options:
    -a,  --append         Append clipboard content rather than overwriting
    -e,  --empty          Create file with no copied contents
    -n,  --no-open        Do not open the file after creation
  
-   -c,  --clear-log      Clears log file at $HOME/ncode.log
+   -c,  --clear-log      Clears log file at $HOME/nclip.log
    -h,  --help           Show this help message
    -v,  --verbose        Enable verbose mode for detailed output
    -l,  --log            Cats the log file to stdout
@@ -23,7 +23,7 @@ ncode_display_help() { # nCode function to display the help message
 EOF
 }
 
-ncode() { # Fetches clipboard content and writes it to specified filename, then opens it in VSCode
+nclip() { # Fetches clipboard content and writes it to specified filename, then opens it in NeoVim
 
  ### START OF INIT
 
@@ -40,7 +40,7 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
     local empty=false
     local file=""
     local help=false
-    local log_file="$HOME/ncode.log"
+    local log_file="$HOME/nclip.log"
     local no_open=false
     local verbose=false
     log_action() { # Logging function
@@ -75,7 +75,7 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
                 ;;
             -l|--log) # Cats log
                 echo "cat $log_file"
-                cat $log_file
+                cat "$log_file"
                 return 1
                 ;;
             *)
@@ -90,7 +90,7 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
 
  ## HELP MESSAGE
     if [ "$help" = true ]; then
-        ncode_display_help
+        nclip_display_help
     return 0
     fi
 
@@ -112,8 +112,8 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
     # Check if a filename is provided
     if [ -z "$file" ]; then
         echo -e "\nError: No filename provided."
-        echo "Usage: ncode [options] <filename>"
-        echo -e "\nUse ncode -h or ncode --help for instructions"
+        echo "Usage: nclip [options] <filename>"
+        echo -e "\nUse nclip -h or nclip --help for instructions"
         return 1
     fi
 
@@ -171,11 +171,11 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
     fi
 
  ## OPEN FILE
-    # Open the file in VSCode unless --no-open is specified
+    # Open the file in NeoVim unless --no-open is specified
     if [ "$no_open" = false ]; then
-        verbose_check "Opening $file in VSCode"
+        verbose_check "Opening $file in NeoVim"
         
-        code "$file"
+        nvim "$file"
     else
         verbose_check "--no-open used. Not opening file"
     fi
@@ -185,5 +185,34 @@ ncode() { # Fetches clipboard content and writes it to specified filename, then 
     # Notify user on empty clipboard
     if [ -z "$content" ] && [ ! "$empty" ]; then # Empty clipboard message
         echo "Error: Clipboard was empty. File may not contain expected content."
+    fi
+}
+
+cds() { # CDs to the first directory found that contains the provided string
+    
+    : ' Example use: cds 4
+        ├──  ch01
+        ├──  ch02
+        ├──  ch03
+        ├──  ch04 << Target folder
+        ├──  ch05
+        
+        user ~: cds 4
+        
+        That command equals:
+        
+        [ cd ch04 && clear && lsd --oneline -F ]
+    '
+    local search="$1"
+    local target
+    
+    # Find the first directory that matches the search string, avoiding hidden directories
+    target=$(find . -type d -not -path '*/.*' -name "*${search}*" -print -quit)
+    
+    if [[ -n "$target" ]]; then
+        cl "$target" || return 1
+    else
+        echo "No directory containing '$search' found." 
+        return 1
     fi
 }
