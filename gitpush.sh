@@ -1,8 +1,18 @@
 # This is a bash function, and should go in a sourced file like ~/.bashrc
-gitpush() { # Takes a variable string and adds ./ to staged commits, commits them with string, then pushes to origin.
+gitpush() {
+    local branch="main"
+    
+    while getopts "m" opt; do
+        case $opt in
+            m) branch="master" ;;
+            *) branch="main" ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
     if [ -z "$1" ]; then
-    	echo -e "Error: Commit message required.\n>gitpush 'message'"
-    	return 1
+        echo -e "Error: Commit message required.\n>gitpush [-m] 'message'"
+        return 1
     fi
 
     echo "Adding files to git..."
@@ -19,10 +29,10 @@ gitpush() { # Takes a variable string and adds ./ to staged commits, commits the
         return 1
     fi
 
-    echo "Pushing changes to origin/main..."
-    git push origin main
+    echo "Pushing changes to origin/$branch..."
+    git push origin $branch
     if [ $? -ne 0 ]; then
-        echo "Error during 'git push origin main'"
+        echo "Error during 'git push origin $branch'"
         return 1
     fi
 
