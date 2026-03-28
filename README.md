@@ -12,7 +12,7 @@
     -e,  --empty          Create file with no copied contents  
     -n,  --no-open        Do not open the file after creation  
     
-    -c, --clear-log Clears log file at /home/$USERNAME/ncode.log  
+    -c, --clear-log Clears log file at $HOME/ncode.log  
     -h, --help Show this help message  
     -v, --verbose Enable verbose mode for detailed output  
 
